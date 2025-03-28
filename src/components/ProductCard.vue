@@ -3,7 +3,7 @@
 defineProps<{
   product: {
     id: number
-    name: string
+    title: string
     description: string
     price: number
     image: string
@@ -14,11 +14,10 @@ defineProps<{
 <template>
   <article class="product-card">
     <figure class="product-image">
-      <img :src="product.image" :alt="product.name" />
+      <img :src="product.image" :alt="product.title" />
     </figure>
     <div class="product-details">
-      <h3 class="product-name">{{ product.name }}</h3>
-      <p class="product-description">{{ product.description }}</p>
+      <h3 class="product-name" :title="product.title">{{ product.title }}</h3>
       <span class="product-price">${{ product.price }}</span>
     </div>
     <button class="btn add-to-cart">Add to Cart</button>
@@ -30,13 +29,14 @@ defineProps<{
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 10px;
-  overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
   width: 100%;
-  max-width: 350px;
+
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     transform: translateY(-10px);
@@ -46,11 +46,13 @@ defineProps<{
   .product-image {
     width: 100%;
     height: 200px;
+    min-height: 200px;
+
     overflow: hidden;
     img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
     }
   }
 
@@ -62,6 +64,12 @@ defineProps<{
       font-size: 1.2rem;
       font-weight: bold;
       margin-bottom: 0.5rem;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      height: 3.6rem;
     }
 
     .product-description {
