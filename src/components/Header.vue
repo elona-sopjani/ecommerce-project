@@ -31,7 +31,7 @@ const handleSearch = (event: KeyboardEvent) => {
 <template>
   <nav class="navbar">
     <div class="navbar-container">
-      <div class="logo">Logo</div>
+      <router-link to="/" class="logo">Logo</router-link>
       <div class="search-bar">
         <input
           type="text"
@@ -67,6 +67,8 @@ const handleSearch = (event: KeyboardEvent) => {
     .logo {
       font-size: 1.5rem;
       font-weight: bold;
+      text-decoration: none;
+      color: #ffffff;
     }
 
     .search-bar {

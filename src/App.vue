@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Header from './components/Header.vue'
-import ProductList from './components/ProductList.vue'
 import { ref, provide } from 'vue'
 
 const notifications = ref(0)
@@ -15,7 +14,7 @@ provide('updateNotifications', updateNotifications)
 <template>
   <Header />
   <main class="main-container">
-    <ProductList />
+    <RouterView />
   </main>
 </template>
 

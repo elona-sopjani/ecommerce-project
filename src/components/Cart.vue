@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, provide, computed, inject } from 'vue'
 import CartCard from './CartCard.vue'
+import { useRouter } from 'vue-router'
 const showSidebar = ref(false)
 const showCheckoutForm = ref(false)
+const router = useRouter()
 const checkoutData = ref({
   fullName: '',
   address: '',
@@ -79,16 +81,18 @@ const handleCheckoutConfirmation = () => {
     ...checkoutData.value,
     orderDate: currentDate,
     orderItems: cart.value,
+    total: totalPrice.value,
   }
   const existingOrderHistory = JSON.parse(localStorage.getItem('orderHistory')) || []
 
-  existingOrderHistory.push(checkoutWithDate)
+  existingOrderHistory.unshift(checkoutWithDate)
   localStorage.setItem('orderHistory', JSON.stringify(existingOrderHistory))
 
   cart.value = []
   localStorage.removeItem('cart')
   showCheckoutForm.value = false
-  alert('Your order has been successfully placed!')
+  showSidebar.value = false
+  router.push({ name: 'history' })
 }
 
 provide('removeFromCart', removeFromCart)
