@@ -1,6 +1,5 @@
-<!-- ProductCard.vue -->
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, inject } from 'vue'
 
 defineProps<{
   product: {
@@ -28,7 +27,8 @@ onMounted(() => {
     cart.value = JSON.parse(storedCart)
   }
 })
-
+const notifications = inject('notifications')
+const updateNotifications = inject('updateNotifications')
 const addToCart = (product: {
   id: number
   title: string
@@ -52,6 +52,9 @@ const addToCart = (product: {
       image: product.image,
       quantity: 1,
     })
+  }
+  if (notifications && updateNotifications) {
+    updateNotifications(notifications.value + 1)
   }
 
   localStorage.setItem('cart', JSON.stringify(cart.value))

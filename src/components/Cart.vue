@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import { ref, watch, provide, computed } from 'vue'
+import { ref, watch, provide, computed, inject } from 'vue'
 import CartCard from './CartCard.vue'
 const showSidebar = ref(false)
-
+const showCheckoutForm = ref(false)
+const checkoutData = ref({
+  fullName: '',
+  address: '',
+  email: '',
+  paymentType: 'Card',
+})
 const toggleSidebar = () => {
   showSidebar.value = !showSidebar.value
 }
@@ -17,6 +23,8 @@ const cart = ref<
     quantity: number
   }[]
 >([])
+const notifications = inject('notifications')
+const updateNotifications = inject('updateNotifications')
 
 const totalPrice = computed(() => {
   return parseFloat(
@@ -26,10 +34,21 @@ const totalPrice = computed(() => {
 
 watch(showSidebar, (newValue) => {
   if (newValue) {
+    updateNotifications(0)
     const storedCart = localStorage.getItem('cart')
     if (storedCart) {
       cart.value = JSON.parse(storedCart)
     }
+    if (checkoutData.value) {
+      checkoutData.value = {
+        fullName: '',
+        address: '',
+        email: '',
+        paymentType: 'Card',
+      }
+    }
+  } else {
+    showCheckoutForm.value = false
   }
 })
 
@@ -37,6 +56,39 @@ const removeFromCart = (productId: number) => {
   cart.value = cart.value.filter((p) => p.id !== productId)
 
   localStorage.setItem('cart', JSON.stringify(cart.value))
+}
+
+const handleCheckoutConfirmation = () => {
+  if (!cart.value.length) return
+  if (!showCheckoutForm.value) {
+    showCheckoutForm.value = true
+    return
+  }
+  if (
+    !checkoutData.value.fullName ||
+    !checkoutData.value.address ||
+    !checkoutData.value.email ||
+    !checkoutData.value.paymentType
+  ) {
+    alert('Please fill in all fields before confirming your order.')
+    return
+  }
+  const currentDate = new Date()
+
+  const checkoutWithDate = {
+    ...checkoutData.value,
+    orderDate: currentDate,
+    orderItems: cart.value,
+  }
+  const existingOrderHistory = JSON.parse(localStorage.getItem('orderHistory')) || []
+
+  existingOrderHistory.push(checkoutWithDate)
+  localStorage.setItem('orderHistory', JSON.stringify(existingOrderHistory))
+
+  cart.value = []
+  localStorage.removeItem('cart')
+  showCheckoutForm.value = false
+  alert('Your order has been successfully placed!')
 }
 
 provide('removeFromCart', removeFromCart)
@@ -56,6 +108,7 @@ provide('removeFromCart', removeFromCart)
           d="M0 24C0 10.7 10.7 0 24 0L69.5 0c22 0 41.5 12.8 50.6 32l411 0c26.3 0 45.5 25 38.6 50.4l-41 152.3c-8.5 31.4-37 53.3-69.5 53.3l-288.5 0 5.4 28.5c2.2 11.3 12.1 19.5 23.6 19.5L488 336c13.3 0 24 10.7 24 24s-10.7 24-24 24l-288.3 0c-34.6 0-64.3-24.6-70.7-58.5L77.4 54.5c-.7-3.8-4-6.5-7.9-6.5L24 48C10.7 48 0 37.3 0 24zM128 464a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm336-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"
         />
       </svg>
+      <span class="notification-indicator" v-if="notifications > 0"> {{ notifications }}</span>
     </div>
 
     <div v-if="showSidebar" class="sidebar-overlay" @click="toggleSidebar">
@@ -85,12 +138,67 @@ provide('removeFromCart', removeFromCart)
           <h2 v-else class="empty-state">Your cart is empty</h2>
         </div>
         <footer class="sidebar-footer">
+          <div v-if="showCheckoutForm" class="checkout-form">
+            <h2>Your information</h2>
+            <label for="fullName">Full Name</label>
+            <input
+              type="text"
+              id="fullName"
+              v-model="checkoutData.fullName"
+              placeholder="Enter your full name"
+            />
+
+            <label for="address">Address</label>
+            <input
+              type="text"
+              id="address"
+              v-model="checkoutData.address"
+              placeholder="Enter your address"
+            />
+
+            <label for="email">Email</label>
+            <input
+              type="email"
+              id="email"
+              v-model="checkoutData.email"
+              placeholder="Enter your email"
+            />
+            <label>Payment Type</label>
+            <div class="payment-radio-buttons">
+              <input
+                type="radio"
+                id="paymentCard"
+                v-model="checkoutData.paymentType"
+                value="Card"
+              />
+              <label for="paymentCard">Card</label>
+
+              <input
+                type="radio"
+                id="paymentCash"
+                v-model="checkoutData.paymentType"
+                value="Cash"
+              />
+              <label for="paymentCash">Cash</label>
+            </div>
+          </div>
           <div v-if="totalPrice > 0" class="cart-total">
             <h2>TOTAL</h2>
             <p>${{ totalPrice }}</p>
           </div>
           <div class="checkout-wrapper">
-            <button class="checkout-button" :disabled="totalPrice == 0">Checkout</button>
+            <div class="checkout-button-wrapper">
+              <button
+                v-if="showCheckoutForm"
+                class="checkout-button cancel"
+                @click="showCheckoutForm = !showCheckoutForm"
+              >
+                Cancel
+              </button>
+              <button class="checkout-button confirm" @click="handleCheckoutConfirmation">
+                {{ showCheckoutForm ? 'Confirm' : 'Checkout' }}
+              </button>
+            </div>
           </div>
         </footer>
       </div>
@@ -101,6 +209,21 @@ provide('removeFromCart', removeFromCart)
 <style lang="scss" scoped>
 .cart-icon {
   cursor: pointer;
+  position: relative;
+  .notification-indicator {
+    position: absolute;
+    top: -7px;
+    right: -8px;
+    background-color: red;
+    color: #ffffff;
+    font-size: 12px;
+    width: 16px;
+    height: 16px;
+    border-radius: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 .sidebar-overlay {
@@ -190,21 +313,68 @@ provide('removeFromCart', removeFromCart)
       font-weight: 500;
     }
   }
-
-  .checkout-button {
+  .checkout-form {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    padding: 0.8rem;
-    background-color: #2e8b57;
-    color: white;
-    font-weight: bold;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    text-transform: uppercase;
+    gap: 8px;
+    margin-bottom: 16px;
+    input {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      border-radius: 6px;
+      outline: none;
+      width: 100%;
+    }
+    label {
+      font-size: 14px;
+      color: rgb(153, 153, 153);
+    }
+    .payment-radio-buttons {
+      display: flex;
+      gap: 4px;
+      input {
+        width: auto;
+      }
+      label {
+        margin-right: 16px;
+        color: unset;
+      }
+    }
+  }
 
-    &:hover {
-      background-color: #267d4b;
+  .checkout-button-wrapper {
+    display: flex;
+    gap: 8px;
+    .checkout-button {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: #2e8b57;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      text-transform: uppercase;
+
+      &:hover {
+        background-color: #267d4b;
+      }
+    }
+    .checkout-button.cancel {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: #ffff;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      color: unset;
+      transition: background-color 0.3s ease;
+      text-transform: uppercase;
+
+      &:hover {
+        background-color: #f1f1f1;
+      }
     }
   }
 }
