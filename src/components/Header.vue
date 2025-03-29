@@ -1,14 +1,44 @@
 <script setup lang="ts">
 import Cart from './Cart.vue'
-import { ref } from 'vue'
-const searchQuery = ref('')
+import { useRouter, useRoute } from 'vue-router'
+import { ref, watch } from 'vue'
+
+const router = useRouter()
+const route = useRoute()
+
+const searchQuery = ref((route.query.searchQuery as string) || '')
+
+watch(
+  () => route.query.searchQuery,
+  (newQuery) => {
+    searchQuery.value = (newQuery as string) || ''
+  },
+)
+
+const handleSearch = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    const query = searchQuery.value.trim()
+
+    if (query) {
+      router.push({ query: { searchQuery: query } })
+    } else {
+      router.push({ query: {} })
+    }
+  }
+}
 </script>
+
 <template>
   <nav class="navbar">
     <div class="navbar-container">
       <div class="logo">Logo</div>
       <div class="search-bar">
-        <input type="text" v-model="searchQuery" placeholder="Search..." />
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Search..."
+          @keydown.enter="handleSearch"
+        />
       </div>
       <Cart />
     </div>
