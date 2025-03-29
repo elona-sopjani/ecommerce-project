@@ -1,5 +1,7 @@
 <!-- ProductCard.vue -->
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
+
 defineProps<{
   product: {
     id: number
@@ -9,6 +11,51 @@ defineProps<{
     image: string
   }
 }>()
+
+const cart = ref<
+  {
+    id: number
+    title: string
+    price: number
+    image: string
+    quantity: number
+  }[]
+>([])
+
+onMounted(() => {
+  const storedCart = localStorage.getItem('cart')
+  if (storedCart) {
+    cart.value = JSON.parse(storedCart)
+  }
+})
+
+const addToCart = (product: {
+  id: number
+  title: string
+  description: string
+  price: number
+  image: string
+}) => {
+  const storedCart = localStorage.getItem('cart')
+  if (storedCart) {
+    cart.value = JSON.parse(storedCart)
+  }
+  const existingItem = cart.value.find((item) => item.id === product.id)
+
+  if (existingItem) {
+    existingItem.quantity++
+  } else {
+    cart.value.push({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      image: product.image,
+      quantity: 1,
+    })
+  }
+
+  localStorage.setItem('cart', JSON.stringify(cart.value))
+}
 </script>
 
 <template>
@@ -20,7 +67,7 @@ defineProps<{
       <h3 class="product-name" :title="product.title">{{ product.title }}</h3>
       <span class="product-price">${{ product.price }}</span>
     </div>
-    <button class="btn add-to-cart">Add to Cart</button>
+    <button class="btn add-to-cart" @click="addToCart(product)">Add to Cart</button>
   </article>
 </template>
 
