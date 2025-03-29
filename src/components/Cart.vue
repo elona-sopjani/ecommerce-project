@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, provide } from 'vue'
+import { ref, watch, provide, computed } from 'vue'
 import CartCard from './CartCard.vue'
 const showSidebar = ref(false)
 
@@ -17,6 +17,12 @@ const cart = ref<
     quantity: number
   }[]
 >([])
+
+const totalPrice = computed(() => {
+  return parseFloat(
+    cart.value.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2),
+  )
+})
 
 watch(showSidebar, (newValue) => {
   if (newValue) {
@@ -53,20 +59,46 @@ provide('removeFromCart', removeFromCart)
     </div>
 
     <div v-if="showSidebar" class="sidebar-overlay" @click="toggleSidebar">
-      <div class="sidebar-content" @click.stop>
-        <h2>Your Cart</h2>
-        <CartCard v-for="(item, i) in cart" :key="i" :product="item" v-if="cart.length > 0" />
-        <h2 v-else class="empty-state">Your cart is empty</h2>
-
-        <div class="close-sidebar-wrapper">
-          <button class="close-sidebar-button" @click="toggleSidebar">Close</button>
+      <div class="sidebar-content-wrapper" @click.stop>
+        <header class="sidebar-header">
+          <h2>
+            Your Cart
+            <span v-if="cart.length > 0">
+              {{ cart.length }} {{ cart.length === 1 ? 'product' : 'products' }}
+            </span>
+          </h2>
+          <div class="close-sidebar-wrapper" @click="toggleSidebar">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 384 512"
+              height="18px"
+              width="18px"
+            >
+              <path
+                d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
+              />
+            </svg>
+          </div>
+        </header>
+        <div class="sidebar-content">
+          <CartCard v-if="cart.length > 0" v-for="(item, i) in cart" :key="i" :product="item" />
+          <h2 v-else class="empty-state">Your cart is empty</h2>
         </div>
+        <footer class="sidebar-footer">
+          <div v-if="totalPrice > 0" class="cart-total">
+            <h2>TOTAL</h2>
+            <p>${{ totalPrice }}</p>
+          </div>
+          <div class="checkout-wrapper">
+            <button class="checkout-button" :disabled="totalPrice == 0">Checkout</button>
+          </div>
+        </footer>
       </div>
     </div>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .cart-icon {
   cursor: pointer;
 }
@@ -85,15 +117,18 @@ provide('removeFromCart', removeFromCart)
   color: black;
 }
 
-.sidebar-content {
+.sidebar-content-wrapper {
   background-color: white;
-  padding: 1rem;
   width: 100%;
   max-width: 350px;
-  height: 100%;
+  height: 100vh;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: between;
+  min-height: 100vh;
 
   h2 {
     font-size: 1.2rem;
@@ -105,24 +140,72 @@ provide('removeFromCart', removeFromCart)
     text-align: center;
     margin-top: 20px;
   }
+
+  .sidebar-content {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 1rem;
+  }
 }
-.close-sidebar-wrapper {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  .close-sidebar-button {
-    padding: 0.5rem 1rem;
-    background-color: #f44336;
-    color: white;
-    border: none;
-    border-radius: 4px;
+
+.sidebar-header {
+  background-color: #ffffff;
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0px 3px 6px rgba(21, 48, 92, 0.08);
+  z-index: 1;
+  h2 {
+    font-size: 14px;
+    font-weight: 600;
+    span {
+      font-weight: 400;
+      font-size: 12px;
+      margin-left: 4px;
+    }
+  }
+  .close-sidebar-wrapper {
     cursor: pointer;
-    margin-top: 1rem;
-    width: 100%;
+
+    &:hover {
+      fill: #d32f2f;
+    }
+  }
+}
+
+.sidebar-footer {
+  width: 100%;
+  padding: 1rem;
+  background-color: #ffffff;
+  box-shadow: 0px -3px 6px rgba(21, 48, 92, 0.08);
+  .cart-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    h2 {
+      font-size: 14px;
+      font-weight: 500;
+    }
   }
 
-  .close-sidebar-button:hover {
-    background-color: #d32f2f;
+  .checkout-button {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #2e8b57;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-transform: uppercase;
+
+    &:hover {
+      background-color: #267d4b;
+    }
   }
 }
 @media (max-width: 768px) {
@@ -130,10 +213,9 @@ provide('removeFromCart', removeFromCart)
     justify-content: center;
   }
 
-  .sidebar-content {
+  .sidebar-content-wrapper {
     max-width: 100%;
     width: 100%;
-    padding: 1rem;
   }
 }
 
@@ -142,7 +224,7 @@ provide('removeFromCart', removeFromCart)
     justify-content: flex-end;
   }
 
-  .sidebar-content {
+  .sidebar-content-wrapper {
     max-width: 350px;
     width: 350px;
   }

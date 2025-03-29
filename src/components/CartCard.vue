@@ -117,8 +117,7 @@ const removeFromCart = inject<(id: number) => void>('removeFromCart')
   .cart-card {
     padding: 1rem;
     max-width: 100%;
-    flex-direction: column;
-    align-items: flex-start;
+    gap: 1rem;
   }
 
   .product-title {
@@ -171,9 +170,6 @@ const removeFromCart = inject<(id: number) => void>('removeFromCart')
     .quantity-count {
       font-size: 1.3rem;
     }
-  }
-
-  .remove-button {
   }
 }
 </style>
