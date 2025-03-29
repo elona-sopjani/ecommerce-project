@@ -2,8 +2,10 @@
 import { onMounted, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import ProductCard from './ProductCard.vue'
+import ProductFilters from './ProductFilters.vue'
 
 const products = ref([])
+const categories = ref([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
@@ -11,6 +13,8 @@ const route = useRoute()
 const searchQuery = computed(() =>
   (route.query.searchQuery as string | undefined)?.trim().toLowerCase(),
 )
+const selectedCategories = ref<string[]>([])
+const selectedSortOption = ref<string | null>(null)
 
 const matchesQuery = (product: any, query: string) =>
   product.title.toLowerCase().includes(query) ||
@@ -18,11 +22,32 @@ const matchesQuery = (product: any, query: string) =>
   product.description.toLowerCase().includes(query)
 
 const filteredProducts = computed(() => {
-  if (!searchQuery.value) return products.value
-  const query = searchQuery.value
-  const filtered = products.value.filter((product) => matchesQuery(product, query))
-  return filtered.length > 0 ? filtered : products.value
+  let result = [...products.value]
+
+  if (searchQuery.value) {
+    result = result.filter((product) => matchesQuery(product, searchQuery.value))
+  }
+
+  if (selectedCategories.value.length > 0) {
+    result = result.filter((product) => selectedCategories.value.includes(product.category))
+  }
+
+  if (selectedSortOption.value === 'Low to High') {
+    result.sort((a, b) => a.price - b.price)
+  } else if (selectedSortOption.value === 'High to Low') {
+    result.sort((a, b) => b.price - a.price)
+  }
+
+  return result
 })
+
+const updateCategory = (categories: string[]) => {
+  selectedCategories.value = categories
+}
+
+const updateSort = (sortOption: string) => {
+  selectedSortOption.value = sortOption
+}
 
 const fetchProducts = async () => {
   loading.value = true
@@ -32,6 +57,7 @@ const fetchProducts = async () => {
     const response = await fetch('https://fakestoreapi.com/products?limit=10')
     if (!response.ok) throw new Error('Failed to fetch data')
     products.value = await response.json()
+    categories.value = [...new Set(products.value.map((product) => product.category))]
   } catch (err) {
     error.value = (err as Error).message || 'An error occurred'
   } finally {
@@ -47,6 +73,13 @@ onMounted(fetchProducts)
   <div v-else-if="error" class="error-message">{{ error }}</div>
   <section v-else class="product-grid">
     <h2 class="section-title">Featured Products</h2>
+    <ProductFilters
+      :categories="categories"
+      :selectedCategories="selectedCategories"
+      :selectedSortOption="selectedSortOption"
+      @update-categories="updateCategory"
+      @update-sort="updateSort"
+    />
     <div class="grid-container">
       <ProductCard v-for="product in filteredProducts" :key="product.id" :product="product" />
     </div>
