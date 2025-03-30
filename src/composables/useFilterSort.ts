@@ -1,8 +1,6 @@
-import { ref, computed, type Ref } from 'vue'
+import { ref } from 'vue'
 
 export function useFilterSort(
-  selectedCategories: Ref<string[]>,
-  selectedSortOption: Ref<string | null>,
   emit: (event: 'update-categories' | 'update-sort', payload: any) => void,
 ) {
   const isSortDropdownOpen = ref(false)
@@ -14,13 +12,8 @@ export function useFilterSort(
   }
 
   const handleCategorySelection = (category: string) => {
-    let updatedCategories = [...selectedCategories.value]
-    if (!updatedCategories.includes(category)) {
-      updatedCategories.push(category)
-    } else {
-      updatedCategories = updatedCategories.filter((cat) => cat !== category)
-    }
-    emit('update-categories', updatedCategories)
+    emit('update-categories', category)
+    isCategoryDropdownOpen.value = false
   }
 
   const toggleSortDropdown = () => {

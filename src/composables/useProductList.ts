@@ -1,4 +1,4 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { type IProduct } from '../interfaces/IProduct'
 
@@ -20,12 +20,17 @@ export function useProductList() {
   const searchQuery = computed(
     () => (route.query.searchQuery as string)?.trim().toLowerCase() || '',
   )
+
+  watch(searchQuery, () => {
+    selectedCategories.value = []
+    selectedSortOption.value = null
+  })
+
   const filteredProducts = computed(() => {
     let result: IProduct[] = [...products.value]
 
     if (searchQuery.value) {
       result = result.filter((product) => matchesQuery(product, searchQuery.value))
-      categories.value = [...new Set(result.map((product) => product.category))]
     }
 
     if (selectedCategories.value.length > 0) {
@@ -41,8 +46,11 @@ export function useProductList() {
     return result
   })
 
-  const updateCategory = (categories: string[]) => {
-    selectedCategories.value = categories
+  const updateCategory = (category: string) => {
+    const updatedCategories = selectedCategories.value.includes(category)
+      ? selectedCategories.value.filter((cat) => cat !== category)
+      : [...selectedCategories.value, category]
+    selectedCategories.value = updatedCategories
   }
 
   const updateSort = (sortOption: string) => {
@@ -52,11 +60,13 @@ export function useProductList() {
   const fetchProducts = async () => {
     loading.value = true
     error.value = null
+    selectedCategories.value = []
     try {
       // Using mock data request to simulate a real API response
       const response = await fetch('https://fakestoreapi.com/products?limit=10')
       if (!response.ok) throw new Error('Failed to fetch data')
       products.value = await response.json()
+      categories.value = [...new Set(products.value.map((product) => product.category))]
     } catch (err) {
       error.value = (err as Error).message || 'An error occurred'
     } finally {

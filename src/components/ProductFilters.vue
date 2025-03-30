@@ -2,7 +2,7 @@
 import { defineProps, defineEmits, ref } from 'vue'
 import { useFilterSort } from '../composables/useFilterSort'
 
-const props = defineProps<{
+defineProps<{
   categories: string[]
   selectedCategories: string[]
   selectedSortOption: string | null
@@ -17,7 +17,7 @@ const {
   toggleCategoryDropdown,
   handleSortSelection,
   handleCategorySelection,
-} = useFilterSort(ref(props.selectedCategories), ref(props.selectedSortOption), emit)
+} = useFilterSort(emit)
 </script>
 
 <template>
