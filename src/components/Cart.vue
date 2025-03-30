@@ -128,8 +128,8 @@ provide('removeFromCart', removeFromCart)
             </svg>
           </div>
         </header>
-        <div>
-          <div v-if="cart.length > 0" class="sidebar-content">
+        <div class="sidebar-content">
+          <div v-if="cart.length > 0">
             <CartCard v-for="(item, i) in cart" :key="i" :product="item" />
           </div>
           <h2 v-else class="empty-state">Your cart is empty</h2>
@@ -241,14 +241,14 @@ provide('removeFromCart', removeFromCart)
   background-color: white;
   width: 100%;
   max-width: 350px;
-  height: 100vh;
+  height: 100dvh;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: between;
-  min-height: 100vh;
+  min-height: 100dvh;
 
   h2 {
     font-size: 1.2rem;

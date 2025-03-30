@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { type IOrder } from '../interfaces/IOrder'
+import CartCard from './CartCard.vue'
 
 const props = defineProps<{
   order: IOrder
@@ -41,8 +42,9 @@ const formattedDate = computed(() => {
 
 <style lang="scss">
 .order-card {
-  width: 700px;
+  width: 100%;
   display: flex;
+  flex-direction: column;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   padding: 16px;
   gap: 16px;
@@ -72,11 +74,21 @@ const formattedDate = computed(() => {
   }
 
   .order-items {
-    width: 400px;
-    max-height: 250px;
+    width: auto;
+    max-height: 350px;
     overflow-y: auto;
     .remove-button {
       display: none;
+    }
+  }
+}
+@media (min-width: 768px) {
+  .order-card {
+    flex-direction: row;
+    width: 700px;
+    .order-items {
+      width: 400px;
+      max-height: 250px;
     }
   }
 }

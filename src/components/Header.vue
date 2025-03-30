@@ -47,6 +47,9 @@ const handleSearch = (event: KeyboardEvent) => {
 
 <style lang="scss">
 .navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -54,6 +57,7 @@ const handleSearch = (event: KeyboardEvent) => {
   padding: 1rem;
   background-color: #333;
   color: white;
+  z-index: 2;
 
   .navbar-container {
     display: flex;

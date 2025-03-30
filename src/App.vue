@@ -24,5 +24,6 @@ provide('updateNotifications', updateNotifications)
   padding: 1rem;
   max-width: 1200px;
   margin: auto;
+  margin-top: 68px;
 }
 </style>
