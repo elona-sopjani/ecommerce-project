@@ -130,6 +130,7 @@ const removeFromCart =
   }
 
   .remove-button {
+    opacity: 1 !important;
   }
 }
 

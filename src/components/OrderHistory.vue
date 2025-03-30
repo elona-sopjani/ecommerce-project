@@ -7,6 +7,7 @@ const orderHistory = ref([])
 
 onMounted(() => {
   orderHistory.value = getLocalStorage('orderHistory', [])
+  window.scrollTo(0, 0)
 })
 </script>
 
