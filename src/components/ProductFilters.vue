@@ -2,7 +2,7 @@
 import { defineProps, defineEmits, ref } from 'vue'
 
 const props = defineProps<{
-  categories: []
+  categories: string[]
   selectedCategories: string[]
   selectedSortOption: string | null
 }>()

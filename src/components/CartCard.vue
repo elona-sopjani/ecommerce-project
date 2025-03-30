@@ -1,17 +1,16 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { inject } from 'vue'
+import { type ICart } from '../interfaces/ICart'
 defineProps<{
-  product: {
-    id: number
-    title: string
-    description: string
-    price: number
-    image: string
-    quantity: number
-  }
+  product: ICart
 }>()
 
-const removeFromCart = inject<(id: number) => void>('removeFromCart')
+const removeFromCart =
+  inject<(id: number) => void>('removeFromCart') ||
+  (() => {
+    console.error('removeFromCart is not available!')
+    return
+  })
 </script>
 
 <template>

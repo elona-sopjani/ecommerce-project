@@ -1,24 +1,19 @@
 <script setup lang="ts">
-import CartCard from './CartCard.vue'
 import { computed } from 'vue'
+import { type IOrder } from '../interfaces/IOrder'
+
 const props = defineProps<{
-  order: {
-    orderDate: string
-    total: number
-    paymentType: string
-    orderItems: {
-      id: number
-      title: string
-      price: number
-      image: string
-      quantity: number
-    }[]
-  }
+  order: IOrder
 }>()
+
 const formattedDate = computed(() => {
   const date = new Date(props.order.orderDate)
 
-  const options = {
+  if (isNaN(date.getTime())) {
+    return 'Date unavailable'
+  }
+
+  const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

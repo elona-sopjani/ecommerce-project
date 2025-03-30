@@ -1,41 +1,19 @@
 <script setup lang="ts">
 import { onMounted, ref, inject } from 'vue'
+import { type IProduct } from '../interfaces/IProduct'
+import { type ICart } from '../interfaces/ICart'
+import { type Ref } from 'vue'
 
 defineProps<{
-  product: {
-    id: number
-    title: string
-    description: string
-    price: number
-    image: string
-  }
+  product: IProduct
 }>()
 
-const cart = ref<
-  {
-    id: number
-    title: string
-    price: number
-    image: string
-    quantity: number
-  }[]
->([])
+const cart = ref<ICart[]>([])
 
-onMounted(() => {
-  const storedCart = localStorage.getItem('cart')
-  if (storedCart) {
-    cart.value = JSON.parse(storedCart)
-  }
-})
-const notifications = inject('notifications')
-const updateNotifications = inject('updateNotifications')
-const addToCart = (product: {
-  id: number
-  title: string
-  description: string
-  price: number
-  image: string
-}) => {
+const notifications = inject('notifications') as Ref<number>
+const updateNotifications = inject('updateNotifications') as (newCount: number) => void
+
+const addToCart = (product: IProduct) => {
   const storedCart = localStorage.getItem('cart')
   if (storedCart) {
     cart.value = JSON.parse(storedCart)
@@ -59,6 +37,13 @@ const addToCart = (product: {
 
   localStorage.setItem('cart', JSON.stringify(cart.value))
 }
+
+onMounted(() => {
+  const storedCart = localStorage.getItem('cart')
+  if (storedCart) {
+    cart.value = JSON.parse(storedCart)
+  }
+})
 </script>
 
 <template>

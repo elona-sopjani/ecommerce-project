@@ -1,28 +1,27 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { type IProduct } from '../interfaces/IProduct'
 import ProductCard from './ProductCard.vue'
 import ProductFilters from './ProductFilters.vue'
 
-const products = ref([])
-const categories = ref([])
+const products = ref<IProduct[]>([])
+const categories = ref<string[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
-
-const route = useRoute()
-const searchQuery = computed(() =>
-  (route.query.searchQuery as string | undefined)?.trim().toLowerCase(),
-)
 const selectedCategories = ref<string[]>([])
 const selectedSortOption = ref<string | null>(null)
 
-const matchesQuery = (product: any, query: string) =>
+const route = useRoute()
+
+const matchesQuery = (product: IProduct, query: string) =>
   product.title.toLowerCase().includes(query) ||
-  product.category.toLowerCase().includes(query) ||
+  product.category?.toLowerCase().includes(query) ||
   product.description.toLowerCase().includes(query)
 
+const searchQuery = computed(() => (route.query.searchQuery as string)?.trim().toLowerCase() || '')
 const filteredProducts = computed(() => {
-  let result = [...products.value]
+  let result: IProduct[] = [...products.value]
 
   if (searchQuery.value) {
     result = result.filter((product) => matchesQuery(product, searchQuery.value))
@@ -33,7 +32,7 @@ const filteredProducts = computed(() => {
   }
 
   if (selectedSortOption.value === 'Low to High') {
-    result.sort((a, b) => a.price - b.price)
+    result.sort((a: { price: number }, b: { price: number }) => a.price - b.price)
   } else if (selectedSortOption.value === 'High to Low') {
     result.sort((a, b) => b.price - a.price)
   }

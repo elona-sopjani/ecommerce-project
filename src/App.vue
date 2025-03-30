@@ -3,7 +3,8 @@ import Header from './components/Header.vue'
 import { ref, provide } from 'vue'
 
 const notifications = ref(0)
-const updateNotifications = (newCount: number) => {
+
+const updateNotifications = (newCount: number): void => {
   notifications.value = newCount
 }
 

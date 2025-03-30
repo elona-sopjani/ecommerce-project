@@ -1,32 +1,25 @@
 <script setup lang="ts">
-import { ref, watch, provide, computed, inject } from 'vue'
+import { ref, watch, provide, computed, inject, type Ref } from 'vue'
 import CartCard from './CartCard.vue'
 import { useRouter } from 'vue-router'
-const showSidebar = ref(false)
-const showCheckoutForm = ref(false)
-const router = useRouter()
-const checkoutData = ref({
+import { type ICart } from '../interfaces/ICart'
+import { type ICheckout } from '../interfaces/ICheckout'
+
+const initialCheckoutData = {
   fullName: '',
   address: '',
   email: '',
   paymentType: 'Card',
-})
-const toggleSidebar = () => {
-  showSidebar.value = !showSidebar.value
+  orderItems: [],
 }
+const showSidebar = ref(false)
+const showCheckoutForm = ref(false)
+const checkoutData = ref<ICheckout>(initialCheckoutData)
+const cart = ref<ICart[]>([])
 
-const cart = ref<
-  {
-    id: number
-    title: string
-    description: string
-    price: number
-    image: string
-    quantity: number
-  }[]
->([])
-const notifications = inject('notifications')
-const updateNotifications = inject('updateNotifications')
+const router = useRouter()
+const notifications = inject('notifications') as Ref<number>
+const updateNotifications = inject('updateNotifications') as (newCount: number) => void
 
 const totalPrice = computed(() => {
   return parseFloat(
@@ -34,26 +27,9 @@ const totalPrice = computed(() => {
   )
 })
 
-watch(showSidebar, (newValue) => {
-  if (newValue) {
-    updateNotifications(0)
-    const storedCart = localStorage.getItem('cart')
-    if (storedCart) {
-      cart.value = JSON.parse(storedCart)
-    }
-    if (checkoutData.value) {
-      checkoutData.value = {
-        fullName: '',
-        address: '',
-        email: '',
-        paymentType: 'Card',
-      }
-    }
-  } else {
-    showCheckoutForm.value = false
-  }
-})
-
+const toggleSidebar = () => {
+  showSidebar.value = !showSidebar.value
+}
 const removeFromCart = (productId: number) => {
   cart.value = cart.value.filter((p) => p.id !== productId)
 
@@ -83,7 +59,7 @@ const handleCheckoutConfirmation = () => {
     orderItems: cart.value,
     total: totalPrice.value,
   }
-  const existingOrderHistory = JSON.parse(localStorage.getItem('orderHistory')) || []
+  const existingOrderHistory = JSON.parse(localStorage.getItem('orderHistory') || '[]')
 
   existingOrderHistory.unshift(checkoutWithDate)
   localStorage.setItem('orderHistory', JSON.stringify(existingOrderHistory))
@@ -94,6 +70,21 @@ const handleCheckoutConfirmation = () => {
   showSidebar.value = false
   router.push({ name: 'history' })
 }
+
+watch(showSidebar, (newValue) => {
+  if (newValue) {
+    updateNotifications(0)
+    const storedCart = localStorage.getItem('cart')
+    if (storedCart) {
+      cart.value = JSON.parse(storedCart)
+    }
+    if (checkoutData.value) {
+      checkoutData.value = initialCheckoutData
+    }
+  } else {
+    showCheckoutForm.value = false
+  }
+})
 
 provide('removeFromCart', removeFromCart)
 </script>
@@ -137,8 +128,10 @@ provide('removeFromCart', removeFromCart)
             </svg>
           </div>
         </header>
-        <div class="sidebar-content">
-          <CartCard v-if="cart.length > 0" v-for="(item, i) in cart" :key="i" :product="item" />
+        <div>
+          <div v-if="cart.length > 0" class="sidebar-content">
+            <CartCard v-for="(item, i) in cart" :key="i" :product="item" />
+          </div>
           <h2 v-else class="empty-state">Your cart is empty</h2>
         </div>
         <footer class="sidebar-footer">
