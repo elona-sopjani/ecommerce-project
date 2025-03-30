@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { defineProps, defineEmits, ref } from 'vue'
+import { useFilterSort } from '../composables/useFilterSort'
 
 const props = defineProps<{
   categories: string[]
@@ -9,37 +10,14 @@ const props = defineProps<{
 
 const emit = defineEmits(['update-categories', 'update-sort'])
 
-const isSortDropdownOpen = ref(false)
-const isCategoryDropdownOpen = ref(false)
-
-const handleSortSelection = (sortOption: string) => {
-  emit('update-sort', sortOption)
-  isSortDropdownOpen.value = false
-}
-
-const handleCategorySelection = (category: string) => {
-  let updatedCategories = [...props.selectedCategories]
-  if (!updatedCategories.includes(category)) {
-    updatedCategories.push(category)
-  } else {
-    updatedCategories = updatedCategories.filter((cat) => cat !== category)
-  }
-  emit('update-categories', updatedCategories)
-}
-
-const toggleSortDropdown = () => {
-  isSortDropdownOpen.value = !isSortDropdownOpen.value
-  if (isCategoryDropdownOpen.value) {
-    isCategoryDropdownOpen.value = false
-  }
-}
-
-const toggleCategoryDropdown = () => {
-  isCategoryDropdownOpen.value = !isCategoryDropdownOpen.value
-  if (isSortDropdownOpen.value) {
-    isSortDropdownOpen.value = false
-  }
-}
+const {
+  isSortDropdownOpen,
+  isCategoryDropdownOpen,
+  toggleSortDropdown,
+  toggleCategoryDropdown,
+  handleSortSelection,
+  handleCategorySelection,
+} = useFilterSort(ref(props.selectedCategories), ref(props.selectedSortOption), emit)
 </script>
 
 <template>

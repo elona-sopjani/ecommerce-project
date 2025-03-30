@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { getLocalStorage } from '../utils/helper'
 import OrderCard from './OrderCard.vue'
 
 const orderHistory = ref([])
 
 onMounted(() => {
-  const storedOrders = localStorage.getItem('orderHistory')
-  orderHistory.value = storedOrders ? JSON.parse(storedOrders) : []
+  orderHistory.value = getLocalStorage('orderHistory', [])
 })
 </script>
 

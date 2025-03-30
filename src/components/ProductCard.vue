@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, inject } from 'vue'
+import { onMounted, ref } from 'vue'
 import { type IProduct } from '../interfaces/IProduct'
 import { type ICart } from '../interfaces/ICart'
-import { type Ref } from 'vue'
+import { getLocalStorage } from '../utils/helper'
+import { useCart } from '../composables/useCart'
 
 defineProps<{
   product: IProduct
@@ -10,39 +11,10 @@ defineProps<{
 
 const cart = ref<ICart[]>([])
 
-const notifications = inject('notifications') as Ref<number>
-const updateNotifications = inject('updateNotifications') as (newCount: number) => void
-
-const addToCart = (product: IProduct) => {
-  const storedCart = localStorage.getItem('cart')
-  if (storedCart) {
-    cart.value = JSON.parse(storedCart)
-  }
-  const existingItem = cart.value.find((item) => item.id === product.id)
-
-  if (existingItem) {
-    existingItem.quantity++
-  } else {
-    cart.value.push({
-      id: product.id,
-      title: product.title,
-      price: product.price,
-      image: product.image,
-      quantity: 1,
-    })
-  }
-  if (notifications && updateNotifications) {
-    updateNotifications(notifications.value + 1)
-  }
-
-  localStorage.setItem('cart', JSON.stringify(cart.value))
-}
+const { addToCart, addSuccessMessage } = useCart()
 
 onMounted(() => {
-  const storedCart = localStorage.getItem('cart')
-  if (storedCart) {
-    cart.value = JSON.parse(storedCart)
-  }
+  cart.value = getLocalStorage('cart', [])
 })
 </script>
 
@@ -55,11 +27,31 @@ onMounted(() => {
       <h3 class="product-name" :title="product.title">{{ product.title }}</h3>
       <span class="product-price">${{ product.price }}</span>
     </div>
+    <transition name="fade-up">
+      <p v-if="addSuccessMessage" class="success-message">{{ addSuccessMessage }}</p>
+    </transition>
     <button class="btn add-to-cart" @click="addToCart(product)">Add to Cart</button>
   </article>
 </template>
 
 <style scoped lang="scss">
+.fade-up-enter-active,
+.fade-up-leave-active {
+  transition:
+    opacity 0.5s,
+    transform 0.5s;
+}
+
+.fade-up-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-up-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
 .product-card {
   background-color: #fff;
   border: 1px solid #ddd;
@@ -69,7 +61,7 @@ onMounted(() => {
     transform 0.3s ease,
     box-shadow 0.3s ease;
   width: 100%;
-
+  height: 400px;
   display: flex;
   flex-direction: column;
 
@@ -91,9 +83,15 @@ onMounted(() => {
     }
   }
 
+  .success-message {
+    color: #267d4b;
+    padding: 4px;
+    font-size: 12px;
+  }
   .product-details {
     padding: 1rem;
     text-align: center;
+    flex-grow: 1;
 
     .product-name {
       font-size: 1.2rem;
