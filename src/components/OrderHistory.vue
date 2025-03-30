@@ -13,7 +13,7 @@ onMounted(() => {
 <template>
   <div class="order-layout">
     <h1>Your purchase history</h1>
-    <section class="orders-wrapper" v-if="!orderHistory.length > 0">
+    <section class="orders-wrapper" v-if="orderHistory.length > 0">
       <OrderCard v-for="(order, i) in orderHistory" :order="order" :key="i" />
     </section>
     <div class="no-orders" v-else>
